@@ -21,7 +21,7 @@ pip install -r requirements.txt
 Interactive mode:
 
 ```powershell
-python .\codex_session_porter.py
+python .\codex_manager.py
 ```
 
 Interactive export asks for an output bundle path and defaults it to the current directory.
@@ -29,35 +29,35 @@ Interactive export asks for an output bundle path and defaults it to the current
 Direct export:
 
 ```powershell
-python .\codex_session_porter.py export
+python .\codex_manager.py export
 ```
 
 Direct export with an explicit output file:
 
 ```powershell
-python .\codex_session_porter.py export --export-file .\session-export.zip
+python .\codex_manager.py export --export-file .\session-export.zip
 ```
 
 Export specific session ids:
 
 ```powershell
-python .\codex_session_porter.py export --session-id 019d07cf-f21b-7ae0-9c51-3704a5630c7c -o .\session-export.zip
+python .\codex_manager.py export --session-id 019d07cf-f21b-7ae0-9c51-3704a5630c7c -o .\session-export.zip
 ```
 
 Import a bundle:
 
 ```powershell
-python .\codex_session_porter.py import .\session-export.zip
+python .\codex_manager.py import .\session-export.zip
 ```
 
 Import a bundle with an explicit flag:
 
 ```powershell
-python .\codex_session_porter.py import --import-file .\session-export.zip
+python .\codex_manager.py import --import-file .\session-export.zip
 ```
 
 Override the Codex home directory:
 
 ```powershell
-python .\codex_session_porter.py --codex-home C:\path\to\.codex export
+python .\codex_manager.py --codex-home C:\path\to\.codex export
 ```

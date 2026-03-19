@@ -74,7 +74,7 @@ class SessionRecord:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="codex_session_porter.py",
+        prog="codex_manager.py",
         description="Export and import Codex sessions.",
     )
     parser.add_argument(
