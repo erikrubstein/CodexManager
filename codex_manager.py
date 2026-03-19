@@ -67,6 +67,7 @@ class SessionRecord:
     created_at: int
     title: str
     first_user_message: str
+    last_message: str
     cli_version: str
     thread_row: dict[str, Any] | None
     history_entries: list[dict[str, Any]]
@@ -208,8 +209,8 @@ def choose_sessions_interactively(sessions: list[SessionRecord]) -> list[Session
     choices = []
     for session in sessions:
         updated = format_epoch(session.updated_at)
-        title = shorten(session.title or session.first_user_message or session.session_id, 88)
-        label = f"{updated}  {title}"
+        message = shorten(session.last_message or session.title or session.first_user_message or session.session_id, 88)
+        label = f"{updated}  {message}"
         choices.append(Choice(title=label, value=session))
 
     selected = questionary.checkbox(
@@ -401,6 +402,7 @@ class CodexSessionManager:
             or (history_entries[0]["text"] if history_entries else "")
             or title
         )
+        last_message = history_entries[-1]["text"] if history_entries else first_user_message
 
         return SessionRecord(
             session_id=session_id,
@@ -410,6 +412,7 @@ class CodexSessionManager:
             created_at=created_at,
             title=title,
             first_user_message=first_user_message,
+            last_message=last_message,
             cli_version=(thread_row or {}).get("cli_version") or session_meta["payload"].get("cli_version", ""),
             thread_row=thread_row,
             history_entries=history_entries,
