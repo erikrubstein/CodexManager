@@ -1,4 +1,4 @@
-# Codex Session Porter
+# Codex Manager
 
 Single-file CLI utility for exporting and importing local Codex sessions.
 

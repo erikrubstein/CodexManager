@@ -286,6 +286,7 @@ class CodexSessionManager:
         self.sessions_dir = self.codex_home / "sessions"
         self.history_path = self.codex_home / "history.jsonl"
         self.state_db_path = self.codex_home / "state_5.sqlite"
+        self._thread_table_columns_cache: list[str] | None = None
 
     def list_sessions(self) -> list[SessionRecord]:
         thread_rows = self._load_thread_rows()
@@ -428,7 +429,12 @@ class CodexSessionManager:
         if not self.state_db_path.exists():
             return {}
 
-        query = f"SELECT {', '.join(THREAD_COLUMNS)} FROM threads"
+        available_columns = self._get_thread_table_columns()
+        if not available_columns:
+            return {}
+
+        select_columns = [column for column in THREAD_COLUMNS if column in available_columns]
+        query = f"SELECT {', '.join(select_columns)} FROM threads"
         with sqlite3.connect(self.state_db_path) as connection:
             connection.row_factory = sqlite3.Row
             rows = connection.execute(query).fetchall()
@@ -503,10 +509,15 @@ class CodexSessionManager:
         if not self.state_db_path.exists():
             raise SystemExit(f"Codex state database not found: {self.state_db_path}")
 
-        columns = ", ".join(THREAD_COLUMNS)
-        placeholders = ", ".join("?" for _ in THREAD_COLUMNS)
-        update_columns = ", ".join(f"{column}=excluded.{column}" for column in THREAD_COLUMNS if column != "id")
-        values = [thread_row.get(column) for column in THREAD_COLUMNS]
+        available_columns = self._get_thread_table_columns()
+        write_columns = [column for column in THREAD_COLUMNS if column in available_columns]
+        if "id" not in write_columns:
+            raise SystemExit("The Codex threads table does not include the required 'id' column.")
+
+        columns = ", ".join(write_columns)
+        placeholders = ", ".join("?" for _ in write_columns)
+        update_columns = ", ".join(f"{column}=excluded.{column}" for column in write_columns if column != "id")
+        values = [thread_row.get(column) for column in write_columns]
 
         with sqlite3.connect(self.state_db_path) as connection:
             connection.execute(
@@ -518,6 +529,20 @@ class CodexSessionManager:
                 values,
             )
             connection.commit()
+
+    def _get_thread_table_columns(self) -> list[str]:
+        if self._thread_table_columns_cache is not None:
+            return self._thread_table_columns_cache
+
+        if not self.state_db_path.exists():
+            self._thread_table_columns_cache = []
+            return self._thread_table_columns_cache
+
+        with sqlite3.connect(self.state_db_path) as connection:
+            rows = connection.execute("PRAGMA table_info(threads)").fetchall()
+
+        self._thread_table_columns_cache = [row[1] for row in rows]
+        return self._thread_table_columns_cache
 
     def _append_history_entries(self, entries: list[dict[str, Any]], session_id: str) -> None:
         existing = set()
